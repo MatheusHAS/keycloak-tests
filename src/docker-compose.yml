@@ -1,0 +1,57 @@
+version: "3"
+
+services:
+  apache:
+    build: ./dockerfiles/apache/.
+    container_name: webserver-php
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./src:/var/www/html
+    env_file:
+      - ./develop.env
+    depends_on:
+      - database
+    links:
+      - database
+    environment:
+      DB_HOST: database
+
+  database:
+    container_name: database
+    image: mysql:5.7 
+    restart: always
+    ports:
+      - "3306:3306"
+    env_file:
+      - ./develop.env
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    ports:
+      - "8081:80"
+    depends_on:
+      - database
+    links:
+      - database
+    env_file:
+      - ./develop.env
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:legacy
+    env_file:
+      - ./develop.env
+    ports:
+      - 8080:8080
+    depends_on:
+      - database
+
+volumes:
+  persistent:
+  container-volume:
+  mysql_data:
+      driver: local
